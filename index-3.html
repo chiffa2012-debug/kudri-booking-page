@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Кудри — студия красоты. Запись онлайн</title>
+<meta name="description" content="Студия красоты «Кудри». Место, где вам сделают красиво. Запись онлайн.">
+<link rel="icon" href="/assets/favicon.png">
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body class="pub">
+  <main class="t3-hero">
+    <div class="t3-photo" aria-hidden="true"><img src="/assets/hero-salon.webp" alt="" fetchpriority="high"></div>
+    <div class="t3-inner">
+      <div class="t3-panel">
+        <div class="t3-brand"><img src="/assets/kudri-mark-graphite.png" alt="Кудри"><div><b>КУДРИ</b><small>СТУДИЯ КРАСОТЫ</small></div></div>
+        <h1>Место, где вам сделают <span>красиво</span></h1>
+        <p class="lead">Аккуратно, профессионально и без лишней суеты. Выберите мастера, услугу и время.</p>
+        <nav class="actions" aria-label="Способы записи">
+          <a class="cta" href="/book">Записаться онлайн
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="cta alt" id="messenger" href="#" hidden>Записаться в мессенджере
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
+          </a>
+        </nav>
+        <div class="t3-chips" aria-label="Направления"><span>Маникюр</span><span>Брови и визаж</span><span>Ресницы</span><span>Стрижки</span><span>Окрашивание</span><span>Ваксинг</span></div>
+      </div>
+    </div>
+  </main>
+<script>
+  fetch('/api/public').then(r => r.json()).then(s => {
+    const a = document.getElementById('messenger');
+    if (s.messenger_url && /^https:\/\//.test(s.messenger_url)) { a.href = s.messenger_url; a.target = '_blank'; a.rel = 'noopener'; a.hidden = false; }
+  }).catch(() => {});
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Кудри — студия красоты. Запись онлайн</title>
+<meta name="description" content="Студия красоты «Кудри». Место, где вам сделают красиво. Запись онлайн.">
+<link rel="icon" href="/assets/favicon.png">
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body class="pub">
+  <header class="t2-hero">
+    <svg class="t2-arcs" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <path class="arc" d="M-100 800C300 700 620 690 900 760S1320 840 1560 740"/>
+      <path class="arc" d="M-100 850C320 760 640 750 920 810S1340 890 1560 800"/>
+      <circle class="dot" cx="900" cy="760" r="4"/><circle class="dot" cx="1240" cy="800" r="3"/><circle class="dot" cx="330" cy="716" r="3"/>
+    </svg>
+    <div class="t2-inner">
+      <div>
+        <div class="t2-brand"><img src="/assets/kudri-mark-cream.png" alt="Кудри"><div><b>КУДРИ</b><small>СТУДИЯ КРАСОТЫ</small></div></div>
+        <h1>Кудри</h1>
+        <p class="sub">Студия красоты</p>
+        <p class="lead">Место, где вам сделают красиво: аккуратно, профессионально и без лишней суеты.</p>
+        <nav class="actions" aria-label="Способы записи">
+          <a class="cta" href="/book">Записаться онлайн
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="cta alt" id="messenger" href="#" hidden>Записаться в мессенджере
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
+          </a>
+        </nav>
+      </div>
+      <div class="t2-photo" aria-hidden="true"><img src="/assets/hero-salon.webp" alt="" fetchpriority="high"></div>
+    </div>
+  </header>
+  <section class="t2-strip">
+    <div class="wrap">
+      <div>
+        <h2>Всё, что нужно для&nbsp;<b>ухода за собой</b>, в одном месте</h2>
+        <p>Маникюр и педикюр, брови и визаж, ресницы, стрижки и окрашивание, ваксинг. Запишитесь онлайн: выберите мастера, услугу и удобное время.</p>
+      </div>
+      <div class="t2-gal" aria-hidden="true">
+        <img src="/assets/interior-hair.webp" alt="" loading="lazy"><img src="/assets/interior-brow.webp" alt="" loading="lazy"><img src="/assets/interior-palette.webp" alt="" loading="lazy">
+      </div>
+    </div>
+  </section>
+<script>
+  fetch('/api/public').then(r => r.json()).then(s => {
+    const a = document.getElementById('messenger');
+    if (s.messenger_url && /^https:\/\//.test(s.messenger_url)) { a.href = s.messenger_url; a.target = '_blank'; a.rel = 'noopener'; a.hidden = false; }
+  }).catch(() => {});
+</script>
+</body>
+</html>

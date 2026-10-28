@@ -1,0 +1,71 @@
+/* Вариант 2 — «Графит и бронза». Тёмный экран как в фирменных сторис, дальше светлая запись («шахматка»). */
+html.t2 body.pub, body.pub { background: var(--milk); }
+.t2-hero { position: relative; color: #f3ece2; overflow: hidden; background:
+  radial-gradient(900px 640px at 80% 20%, rgba(168,120,82,.38), transparent 60%),
+  radial-gradient(700px 500px at 0% 100%, rgba(58,38,34,.9), transparent 70%),
+  linear-gradient(160deg, #1c1b1a 0%, var(--graphite) 45%, var(--choc) 100%); }
+.t2-inner { min-height: 92vh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr); gap: clamp(24px, 5vw, 72px); align-items: center; padding: 32px clamp(20px, 6vw, 96px) 64px; max-width: 1480px; margin: 0 auto; position: relative; z-index: 2; }
+.t2-brand { display: flex; align-items: center; gap: 14px; margin-bottom: clamp(30px, 8vh, 84px); }
+.t2-brand img { width: 52px; height: 52px; }
+.t2-brand b { font: 600 15px/1 var(--font-d); letter-spacing: .32em; display: block; }
+.t2-brand small { font: 500 10px/1.4 var(--font); letter-spacing: .3em; color: var(--bronze); display: block; margin-top: 5px; }
+.t2-hero h1 { font: 800 clamp(54px, 9.6vw, 148px)/.92 var(--font-d); letter-spacing: .02em; text-transform: uppercase; color: #fbf6ee; }
+.t2-hero .sub { margin-top: 18px; font: 500 clamp(12px, 1.4vw, 15px)/1.4 var(--font-d); letter-spacing: .42em; color: var(--bronze); text-transform: uppercase; }
+.t2-hero .lead { margin-top: 28px; max-width: 38ch; color: #d8cbbb; }
+.t2-hero .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 38px; }
+.t2-hero .cta { background: var(--wood); color: #fff; }
+.t2-hero .cta:hover { background: #bb8a62; color: #fff; }
+.t2-hero .cta.alt { background: transparent; color: #f3ece2; box-shadow: inset 0 0 0 1.5px rgba(243,236,226,.55); }
+.t2-hero .cta.alt:hover { background: #f3ece2; color: var(--graphite); }
+.t2-photo { position: relative; justify-self: end; width: min(100%, 440px); aspect-ratio: 4 / 5; }
+.t2-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 48% 35%; border-radius: 6px; }
+.t2-photo::before { content: ""; position: absolute; inset: 18px -18px -18px 18px; border: 1.5px solid var(--bronze); border-radius: 6px; z-index: -1; opacity: .8; }
+.t2-arcs { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+.t2-arcs .arc { fill: none; stroke: var(--bronze); stroke-width: 1.2; opacity: .5; }
+.t2-arcs .dot { fill: var(--bronze); opacity: .8; }
+.t2-strip { background: var(--milk); padding: clamp(36px, 6vw, 72px) clamp(20px, 6vw, 96px); }
+.t2-strip .wrap { max-width: 1480px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.6fr; gap: clamp(24px, 4vw, 64px); align-items: center; }
+.t2-strip h2 { font: 300 clamp(26px, 3.4vw, 42px)/1.15 var(--font-d); letter-spacing: -.02em; margin: 0; }
+.t2-strip h2 b { font-weight: 700; }
+.t2-strip p { color: var(--muted); margin-top: 14px; max-width: 42ch; }
+.t2-gal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.t2-gal img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 6px; display: block; }
+.t2-gal img:nth-child(2) { margin-top: 28px; }
+@media (max-width: 960px) { .t2-inner { grid-template-columns: 1fr; min-height: auto; } .t2-photo { justify-self: center; width: min(76vw, 340px); margin-top: 24px; } .t2-strip .wrap { grid-template-columns: 1fr; } }
+
+/* запись: тёмная шапка, светлые шаги, графитовая карточка */
+html.t2 .book { padding-top: 0; }
+html.t2 .book > main > .back, html.t2 .book > main > h1, html.t2 .book > main > p.muted { position: relative; z-index: 1; }
+html.t2 body.pub::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 215px; z-index: 0; background: radial-gradient(700px 300px at 80% 0, rgba(168,120,82,.45), transparent 70%), linear-gradient(160deg, #1c1b1a, var(--graphite) 55%, var(--choc)); }
+html.t2 body.pub { position: relative; }
+html.t2 .book { position: relative; z-index: 1; }
+html.t2 .book > main { position: static; }
+html.t2 .book > main > .back { display: inline-block; margin-top: 34px; color: var(--bronze); }
+html.t2 .book > main > h1 { color: #fbf6ee; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; font-size: clamp(30px, 5vw, 48px); }
+html.t2 .book > main > p.muted { color: #d8cbbb; }
+html.t2 .flow { margin-top: 88px; }
+html.t2 .summary { background: linear-gradient(165deg, var(--graphite), var(--choc)); color: #f3ece2; margin-top: 64px; }
+html.t2 .summary dt { color: var(--bronze); } html.t2 .summary dd.empty-v { color: #8d7f72; }
+html.t2 .summary .total { border-top-color: rgba(243,236,226,.3); } html.t2 .summary .total .muted { color: #d8cbbb; }
+html.t2 .summary img.deco { filter: none; opacity: .14; }
+html.t2 .stp > header b::before { background: var(--graphite); color: var(--bronze); }
+html.t2 .opt.sel { background: var(--warm); box-shadow: 0 0 0 2px var(--wood); }
+html.t2 .slots .opt.sel { background: var(--wood); color: #fff; }
+html.t2 .go { background: var(--wood); } html.t2 .go:hover { background: var(--bronze-d); }
+html.t2 .go:disabled { background: var(--warm); color: var(--muted-2); }
+html.t2 .cta { background: var(--wood); } html.t2 .cta.alt { background: transparent; color: var(--graphite); box-shadow: inset 0 0 0 1.5px var(--graphite); }
+html.t2 .gift { background: linear-gradient(150deg, var(--graphite), var(--choc)); color: #f3ece2; }
+html.t2 .gift h2 { color: #fbf6ee; } html.t2 .gift p, html.t2 .gift .small { color: #d8cbbb; }
+html.t2 .gift .tear { border-top-color: rgba(184,156,127,.55); }
+html.t2 .code { background: var(--milk); color: var(--graphite); }
+html.t2 dialog { background: linear-gradient(150deg, var(--graphite), var(--choc)); color: #f3ece2; }
+html.t2 dialog h2 { color: #fbf6ee; } html.t2 dialog .small, html.t2 dialog p { color: #d8cbbb !important; }
+html.t2 dialog button.ghost { color: #f3ece2; box-shadow: inset 0 0 0 2px rgba(243,236,226,.4); }
+html.t2 .share { background: var(--warm); }
+
+/* админка */
+html.t2 .side { background: linear-gradient(170deg, var(--metal) 0%, var(--graphite) 55%, var(--choc) 100%); }
+html.t2 .nav a[aria-current="page"]::before { background: var(--wood); }
+html.t2 .kpi:first-child { background-image: radial-gradient(circle at 105% -10%, rgba(168,120,82,.6), transparent 55%); }
+html.t2 th { background: var(--warm); }
+html.t2 .board h3 { background: var(--graphite); color: #f3ece2; }

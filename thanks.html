@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Запись принята — Кудри</title>
+<link rel="stylesheet" href="/ui.css">
+<style>
+  .wrap { max-width: 640px; margin: 0 auto; padding: 5vh 20px 80px; }
+  .sum { margin-top: 28px; background: var(--paper); border-radius: var(--r-lg); padding: 6px 22px; box-shadow: 0 0 0 1px var(--line); }
+  .sum dl { display: grid; grid-template-columns: 110px 1fr; margin: 0; }
+  .sum dt, .sum dd { padding: 14px 0; border-bottom: 1px solid var(--line); margin: 0; }
+  .sum dt { color: var(--muted); } .sum dt:nth-last-of-type(1), .sum dd:last-child { border-bottom: 0; }
+  .gift { position: relative; margin-top: 28px; padding: 26px 26px 22px; border-radius: var(--r-lg); background: var(--pist); color: var(--pist-ink); overflow: hidden; }
+  .gift::before, .gift::after { content: ""; position: absolute; top: 58%; width: 26px; height: 26px; border-radius: 50%; background: var(--chalk); }
+  .gift::before { left: -13px; } .gift::after { right: -13px; }
+  .gift h2 { font-size: 22px; margin: 0 0 8px; color: #1d3309; }
+  .gift p { color: #365718; margin: 0 0 14px; }
+  .gift .tear { border-top: 2px dashed rgba(44,74,18,.4); margin: 18px -26px 16px; }
+  .code { display: inline-flex; gap: 10px; align-items: center; background: #fff; color: var(--plum); border-radius: 12px; padding: 10px 16px; font: 700 20px var(--font-d); letter-spacing: .1em; }
+  .gift .small { color: #365718; margin: 12px 0 0; }
+  .share { margin-top: 28px; padding: 26px; border-radius: var(--r-lg); background: var(--lav); }
+  .share h2 { font-size: 20px; }
+  .share .code { background: #fff; }
+  dialog { border: 0; border-radius: 28px; padding: 0; width: min(440px, calc(100vw - 32px)); background: var(--pist); color: var(--pist-ink); box-shadow: 0 30px 80px rgba(36,17,46,.38); }
+  dialog::backdrop { background: rgba(36,17,46,.55); }
+  dialog .in { padding: 30px; }
+  dialog h2 { font-size: 24px; line-height: 1.2; margin: 0 0 10px; color: #1d3309; }
+  dialog .btns { display: flex; gap: 8px; margin-top: 20px; }
+  dialog .btns button { flex: 1; min-height: 50px; border-radius: 99px; }
+  dialog button.ghost { color: #1d3309; box-shadow: inset 0 0 0 2px rgba(44,74,18,.5); }
+  dialog.wheeldlg .in { text-align: center; }
+  .wheel { position: relative; width: min(300px, 74vw); aspect-ratio: 1; margin: 18px auto 6px; }
+  .wheel svg { width: 100%; height: 100%; display: block; transition: transform 5s cubic-bezier(.12,.7,.1,1); filter: drop-shadow(0 14px 18px rgba(0,0,0,.45)); }
+  .wheel .pin { position: absolute; left: 50%; top: -10px; width: 26px; height: 34px; transform: translateX(-50%); z-index: 2; }
+  .wheel .hub { position: absolute; inset: 50% auto auto 50%; width: 64px; height: 64px; transform: translate(-50%,-50%); border-radius: 50%; display: grid; place-items: center; background: #fff4e2; box-shadow: 0 6px 14px rgba(0,0,0,.4); z-index: 2; }
+  .wheel .hub img { width: 40px; height: 40px; }
+  .wheel text { font: 700 11px Montserrat, sans-serif; fill: #fff4e2; }
+  .wheel .lt text { fill: #3a2622; }
+  #spin[disabled] { opacity: .6; }
+  #wres { display: none; }
+  dialog.won .in > .small, dialog.won .in > h2 { display: none; }
+  dialog.won .wheel { width: 150px; margin: 4px auto 10px; }
+  dialog.won .wheel .hub { width: 36px; height: 36px; } dialog.won .wheel .hub img { width: 22px; height: 22px; }
+  dialog.won #wres h2 { display: block; font-size: 21px; }
+  dialog.wheeldlg { max-height: calc(100vh - 24px); }
+  @media (prefers-reduced-motion: no-preference) {
+    dialog[open] { animation: pop .28s cubic-bezier(.2,.8,.3,1.2); }
+    @keyframes pop { from { opacity: 0; transform: translateY(14px) scale(.96); } to { opacity: 1; transform: none; } }
+  }
+</style>
+</head>
+<body class="pub">
+<main class="wrap" id="root">
+  <p class="muted" id="loading">Загружаем запись…</p>
+</main>
+
+<dialog id="giftdlg" aria-labelledby="gt">
+  <div class="in">
+    <p class="small" style="margin:0 0 8px;color:#365718">Подарок к вашей записи</p>
+    <h2 id="gt"></h2>
+    <p id="gb" style="color:#365718;margin:0 0 14px"></p>
+    <div class="code" id="gc"></div>
+    <p class="small" id="ge" style="margin:10px 0 0"></p>
+    <div class="btns"><button id="take">Забрать подарок</button><button class="ghost" id="later">Позже</button></div>
+  </div>
+</dialog>
+
+<script>
+const q = new URLSearchParams(location.search);
+const V = q.get('v'), T = q.get('t');
+const root = document.getElementById('root');
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+const rub = n => n.toLocaleString('ru-RU') + ' ₽';
+const dateRu = s => new Date(s + 'T12:00:00').toLocaleDateString('ru-RU', {day:'numeric', month:'long', weekday:'long'});
+const until = s => new Date(s + 'T12:00:00').toLocaleDateString('ru-RU', {day:'numeric', month:'long'});
+
+function copy(text, btn){
+  navigator.clipboard.writeText(text).then(() => { const o = btn.textContent; btn.textContent = 'Скопировано'; setTimeout(() => btn.textContent = o, 1600); });
+}
+function row(dl, k, v){ dl.appendChild(el('dt', null, k)); dl.appendChild(el('dd', null, v)); }
+
+async function accept(code){
+  await fetch('/api/thanks/accept', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({v:+V, t:T, code})});
+}
+
+function giftBlock(g){
+  const box = el('section', 'gift');
+  box.appendChild(el('h2', null, g.title));
+  box.appendChild(el('p', null, g.body));
+  box.appendChild(el('div', 'tear'));
+  const c = el('div', 'code'); c.appendChild(el('span', null, g.code)); box.appendChild(c);
+  box.appendChild(el('p', 'small', 'Покажите код администратору или введите его при следующей записи на сайте. Действует до ' + until(g.expires) + '. С другими скидками и подарками не суммируется.'));
+  return box;
+}
+
+function shareBlock(inv){
+  const box = el('section', 'share');
+  box.appendChild(el('h2', null, 'Подарок для подруги'));
+  box.appendChild(el('p', 'lead', 'Подруге скидка ' + inv.value + '% на первый визит (до ' + rub(inv.max_rub) + '). Вам бесплатная услуга до ' + rub(inv.max_rub) + ', когда она придёт к нам.'));
+  const c = el('div', 'code', inv.code); c.style.marginTop = '12px'; box.appendChild(c);
+  const row2 = el('div', 'row'); row2.style.marginTop = '12px';
+  const b = el('button', null, 'Скопировать сообщение');
+  const msg = 'Записывайся в Кудри по моему коду ' + inv.code + ': скидка ' + inv.value + '% на первый визит. ' + location.origin + (window.KV || '') + '/book';
+  b.onclick = () => copy(msg, b); row2.appendChild(b);
+  if (navigator.share){ const s = el('button', 'ghost', 'Поделиться'); s.onclick = () => navigator.share({text: msg}).catch(() => {}); row2.appendChild(s); }
+  box.appendChild(row2);
+  box.appendChild(el('p', 'small', 'Код можно отправить до ' + inv.uses_left + ' подругам. Действует до ' + until(inv.expires) + '. Награда начисляется, когда подруга пришла на визит. Скидка и награда не суммируются с другими акциями.'));
+  return box;
+}
+
+
+function wheelFlow(g){
+  const labels = ['−15% брови','−10% ресницы','Подарок подруге','−10% педикюр','−10% 2-й визит','Скидка на уход'];
+  const idx = 0; labels[idx] = ((g.title.match(/[−-]\d+%/) || ['Ваш'])[0]) + ' ваш подарок';
+  const NS = 'http://www.w3.org/2000/svg', n = labels.length, R = 150;
+  const dlg = document.getElementById('giftdlg'); dlg.classList.add('wheeldlg');
+  const inn = dlg.querySelector('.in'); inn.replaceChildren();
+  inn.appendChild(el('p', 'small', 'Подарок к вашей записи'));
+  inn.appendChild(el('h2', null, 'Крутите колесо'));
+  inn.appendChild(el('p', 'small', 'Подарок определяется вашей записью, колесо покажет его.'));
+  const w = el('div', 'wheel'); const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '-160 -160 320 320');
+  const fills = ['#4a2f27', '#9a6b45', '#f0dcc0', '#35241f', '#c18a5a', '#fff4e2'];
+  for (let i = 0; i < n; i++){
+    const a0 = (i * 360 / n - 90) * Math.PI / 180, a1 = ((i + 1) * 360 / n - 90) * Math.PI / 180;
+    const gEl = document.createElementNS(NS, 'g'); if (['#f0dcc0', '#fff4e2'].includes(fills[i])) gEl.setAttribute('class', 'lt');
+    const path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', `M0 0L${R*Math.cos(a0)} ${R*Math.sin(a0)}A${R} ${R} 0 0 1 ${R*Math.cos(a1)} ${R*Math.sin(a1)}Z`);
+    path.setAttribute('fill', fills[i]); path.setAttribute('stroke', '#e5bd8a'); path.setAttribute('stroke-width', '1.5'); gEl.appendChild(path);
+    const t = document.createElementNS(NS, 'text'); const mid = (i + .5) * 360 / n;
+    t.setAttribute('transform', `rotate(${mid - 90}) translate(${R*.58} 0)`); t.setAttribute('text-anchor', 'middle'); t.setAttribute('dominant-baseline', 'middle');
+    const words = labels[i].split(' '); const l1 = words.slice(0, Math.ceil(words.length / 2)).join(' '), l2 = words.slice(Math.ceil(words.length / 2)).join(' ');
+    const s1 = document.createElementNS(NS, 'tspan'); s1.setAttribute('x', 0); s1.setAttribute('dy', l2 ? '-.55em' : '0'); s1.textContent = l1; t.appendChild(s1);
+    if (l2){ const s2 = document.createElementNS(NS, 'tspan'); s2.setAttribute('x', 0); s2.setAttribute('dy', '1.2em'); s2.textContent = l2; t.appendChild(s2); }
+    gEl.appendChild(t); svg.appendChild(gEl);
+  }
+  const ring = document.createElementNS(NS, 'circle'); ring.setAttribute('r', R); ring.setAttribute('fill', 'none'); ring.setAttribute('stroke', '#e5bd8a'); ring.setAttribute('stroke-width', '5'); svg.appendChild(ring);
+  w.appendChild(svg);
+  w.insertAdjacentHTML('beforeend', '<svg class="pin" viewBox="0 0 26 34"><path d="M13 34L1 10a13 13 0 1 1 24 0z" fill="#e5bd8a" stroke="#3a2622" stroke-width="2"/></svg><div class="hub"><img src="/assets/kudri-mark-graphite.png" alt=""></div>');
+  inn.appendChild(w);
+  const spin = el('button', null, 'Крутить'); spin.id = 'spin'; inn.appendChild(spin);
+  const res = el('div'); res.id = 'wres'; inn.appendChild(res);
+  spin.onclick = () => {
+    spin.disabled = true;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const deg = 360 * 5 - (idx + .5) * 360 / n + (Math.random() - .5) * 30;
+    let fin = false;
+    const done = () => {
+      if (fin) return; fin = true;
+      spin.style.display = 'none'; res.style.display = 'block'; dlg.classList.add('won'); res.replaceChildren();
+      res.appendChild(el('h2', null, g.title)); res.appendChild(el('p', null, g.body));
+      const c = el('div', 'code', g.code); res.appendChild(c);
+      res.appendChild(el('p', 'small', 'Действует до ' + until(g.expires) + '.'));
+      const b = el('div', 'btns'); const take = el('button', null, 'Забрать подарок'); take.onclick = async () => { await accept(g.code); dlg.close(); };
+      b.appendChild(take); res.appendChild(b);
+    };
+    if (reduce){ svg.style.transition = 'none'; svg.style.transform = `rotate(${deg}deg)`; done(); return; }
+    svg.addEventListener('transitionend', done, {once: true}); setTimeout(done, 5400); requestAnimationFrame(() => svg.style.transform = `rotate(${deg}deg)`);
+  };
+  dlg.showModal();
+}
+
+async function load(){
+  const r = await fetch(`/api/thanks?v=${encodeURIComponent(V)}&t=${encodeURIComponent(T)}`);
+  const d = await r.json();
+  root.replaceChildren();
+  if (!r.ok){ root.appendChild(el('h1', 'wordmark', 'Запись не найдена')); root.firstChild.style.fontSize = 'clamp(36px,9vw,56px)';
+    root.appendChild(el('p', 'lead', 'Ссылка устарела или введена с ошибкой.')); const a = el('a', 'cta alt', 'На главную'); a.href = (window.KV || '') + '/'; a.style.marginTop = '24px'; root.appendChild(a); return; }
+  const v = d.visit;
+  const h = el('h1', 'wordmark', 'Спасибо, ' + v.name.split(' ')[0] + '!'); h.style.fontSize = 'clamp(36px,10vw,64px)';
+  root.appendChild(h);
+  root.appendChild(el('p', 'lead', 'Запись принята. Мы напомним о ней и свяжемся, если потребуется подтверждение.'));
+  const sum = el('section', 'sum'); const dl = el('dl');
+  row(dl, 'Когда', dateRu(v.date) + ', ' + v.start);
+  row(dl, 'Где', v.branch + (v.address ? ', ' + v.address : ''));
+  row(dl, 'Мастер', v.master);
+  row(dl, 'Услуги', v.services.join(', '));
+  row(dl, 'Сумма', rub(v.total) + (v.discount ? ' (скидка ' + rub(v.discount) + ' учтена)' : ''));
+  sum.appendChild(dl); root.appendChild(sum);
+  if (d.gift) root.appendChild(giftBlock(d.gift));
+  if (d.invite) root.appendChild(shareBlock(d.invite));
+  const home = el('a', 'cta alt', 'На главную'); home.href = (window.KV || '') + '/'; home.style.marginTop = '28px'; root.appendChild(home);
+
+  if (d.gift){
+    const dlg = document.getElementById('giftdlg');
+    document.getElementById('gt').textContent = d.gift.title;
+    document.getElementById('gb').textContent = d.gift.body;
+    document.getElementById('gc').textContent = d.gift.code;
+    document.getElementById('ge').textContent = 'Действует до ' + until(d.gift.expires) + '. Без розыгрышей: подарок выдан по условиям вашей записи.';
+    document.getElementById('take').onclick = async () => { await accept(d.gift.code); dlg.close(); };
+    document.getElementById('later').onclick = () => dlg.close();
+    if (!d.gift.accepted && typeof dlg.showModal === 'function') setTimeout(() => q.get('wheel') !== '0' ? wheelFlow(d.gift) : dlg.showModal(), 500);
+  }
+}
+if (!V || !T){ root.replaceChildren(el('p', 'lead', 'Нет данных записи.')); } else load();
+</script>
+</body>
+</html>

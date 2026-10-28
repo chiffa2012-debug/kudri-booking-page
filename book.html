@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Запись — Кудри</title>
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body class="pub">
+<div class="book">
+  <main>
+    <a class="back" href="/">← Кудри</a>
+    <h1>Запись</h1>
+    <p class="muted">Пять шагов, около минуты. Оплата в салоне.</p>
+    <div class="flow">
+      <section class="stp" id="s-branch"><header><b>Филиал</b><span id="v-branch"></span></header><div class="list" id="o-branch"></div></section>
+      <section class="stp off" id="s-master"><header><b>Мастер</b><span id="v-master"></span></header><div class="list" id="o-master"></div></section>
+      <section class="stp off" id="s-services"><header><b>Услуги</b><span id="v-services"></span></header><div class="list" id="o-services"></div></section>
+      <section class="stp off" id="s-time"><header><b>Дата и время</b><span id="v-time"></span></header>
+        <div class="row" style="margin:14px 0 0"><input type="date" id="date" aria-label="Дата"></div><div class="slots" id="o-time"></div></section>
+      <section class="stp off" id="s-client"><header><b>Контакты</b></header>
+        <label class="field" style="margin-top:14px"><span>Имя</span><input type="text" id="name" autocomplete="name" maxlength="80"></label>
+        <label class="field"><span>Телефон</span><input type="tel" id="phone" autocomplete="tel" placeholder="+7"></label>
+        <label class="field"><span>Код подарка или код подруги, если есть</span><input type="text" id="code" autocomplete="off" autocapitalize="characters" maxlength="12" placeholder="KD-XXXXX"></label>
+        <p class="small muted" id="codemsg" role="status" style="margin:-4px 0 12px;min-height:18px"></p>
+        <label class="consent"><input type="checkbox" id="consent"> Согласен на обработку персональных данных</label></section>
+    </div>
+    <button class="go" id="go" disabled>Записаться</button>
+    <p class="msg" id="msg" role="status"></p>
+    <div class="mini" aria-live="polite"><span id="mini-text">Выберите филиал</span><b id="mini-total"></b></div>
+  </main>
+  <aside class="summary" aria-label="Ваша запись">
+    <h2>Ваша запись</h2>
+    <dl>
+      <div><dt>Филиал</dt><dd id="r-branch" class="empty-v">не выбран</dd></div>
+      <div><dt>Мастер</dt><dd id="r-master" class="empty-v">не выбран</dd></div>
+      <div><dt>Услуги</dt><dd id="r-services" class="empty-v">не выбраны</dd></div>
+      <div><dt>Когда</dt><dd id="r-time" class="empty-v">не выбрано</dd></div>
+    </dl>
+    <div class="total"><span class="muted">К оплате в салоне</span><b id="r-total">0 ₽</b></div>
+    <p class="small muted" id="r-note" style="margin:0"></p>
+    <img class="deco" src="/assets/kudri-mark-bronze.png" alt="">
+  </aside>
+</div>
+<script>
+const st = {branch:null, master:null, catalog:[], services:new Set(), date:null, start:null, discount:0};
+const $ = id => document.getElementById(id);
+const api = async (u, o) => { const r = await fetch(u, o); return {ok:r.ok, data:await r.json()}; };
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+const enable = id => $(id).classList.remove('off');
+const disable = ids => ids.forEach(id => $(id).classList.add('off'));
+const rub = n => n.toLocaleString('ru-RU') + ' ₽';
+const dateRu = s => new Date(s + 'T12:00:00').toLocaleDateString('ru-RU', {day:'numeric', month:'long', weekday:'short'});
+
+function opt(text, sub, selected, fn){
+  const b = el('button', 'opt' + (selected ? ' sel' : ''), text); b.type = 'button';
+  if (sub) b.appendChild(el('small', null, sub));
+  b.onclick = fn; return b;
+}
+function mark(box, name){ [...box.children].forEach(c => c.classList.toggle('sel', c.firstChild.textContent === name)); }
+function setR(id, text, empty){ const e = $(id); e.textContent = text || empty; e.classList.toggle('empty-v', !text); }
+
+function chosen(){ return st.catalog.filter(s => st.services.has(s.id)); }
+function total(){ return Math.max(0, chosen().reduce((a, s) => a + s.price, 0) - st.discount); }
+function render(){
+  setR('r-branch', st.branch && st.branch.name, 'не выбран');
+  setR('r-master', st.master && st.master.name, 'не выбран');
+  setR('r-services', chosen().map(s => s.name).join(', '), 'не выбраны');
+  setR('r-time', st.start && (dateRu(st.date) + ', ' + st.start), 'не выбрано');
+  $('r-total').textContent = rub(total());
+  $('r-note').textContent = st.discount ? 'Скидка по коду: ' + rub(st.discount) : '';
+  const next = !st.branch ? 'Выберите филиал' : !st.master ? 'Выберите мастера' : !st.services.size ? 'Выберите услуги' : !st.start ? 'Выберите время' : 'Оставьте контакты';
+  $('mini-text').textContent = next; $('mini-total').textContent = st.services.size ? rub(total()) : '';
+}
+
+async function loadBranches(){
+  const {data} = await api('/api/branches'); const box = $('o-branch'); box.replaceChildren();
+  data.forEach(b => box.appendChild(opt(b.name, b.address, st.branch && st.branch.id === b.id, () => pickBranch(b))));
+}
+async function pickBranch(b){
+  st.branch = b; st.master = null; st.catalog = []; st.services.clear(); st.date = null; st.start = null; st.discount = 0;
+  $('v-branch').textContent = b.name; ['v-master','v-services','v-time'].forEach(i => $(i).textContent = '');
+  disable(['s-services','s-time','s-client']); mark($('o-branch'), b.name);
+  const {data} = await api('/api/masters?branch=' + b.id); const box = $('o-master'); box.replaceChildren(); enable('s-master');
+  data.forEach(m => box.appendChild(opt(m.name, m.nearest_date ? 'ближайшее: ' + dateRu(m.nearest_date) + ', ' + m.nearest_slots.join(' ') : 'нет свободных слотов', false, () => pickMaster(m))));
+  validate(); render();
+}
+async function pickMaster(m){
+  st.master = m; st.services.clear(); st.start = null; st.discount = 0; $('v-master').textContent = m.name;
+  ['v-services','v-time'].forEach(i => $(i).textContent = ''); disable(['s-time','s-client']); mark($('o-master'), m.name);
+  const {data} = await api('/api/services?master=' + m.id); st.catalog = data; const box = $('o-services'); box.replaceChildren(); enable('s-services');
+  data.forEach(s => { const b = opt(s.name, rub(s.price) + ' · ' + s.duration + ' мин', false, () => {
+    st.services.has(s.id) ? st.services.delete(s.id) : st.services.add(s.id);
+    b.classList.toggle('sel'); servicesChanged(); }); box.appendChild(b); });
+  validate(); render();
+}
+function servicesChanged(){
+  st.start = null; st.discount = 0; $('v-time').textContent = '';
+  $('v-services').textContent = st.services.size ? 'выбрано: ' + st.services.size : '';
+  if (!st.services.size){ disable(['s-time','s-client']); validate(); render(); return; }
+  enable('s-time'); const d = $('date'); const today = new Date().toISOString().slice(0,10);
+  d.min = today; if (!d.value) d.value = today; st.date = d.value; loadSlots(); checkCode(); validate(); render();
+}
+async function loadSlots(){
+  const box = $('o-time'); box.replaceChildren(); st.start = null;
+  const {ok, data} = await api(`/api/slots?master=${st.master.id}&date=${st.date}&services=${[...st.services].join(',')}`);
+  if (!ok || !data.slots.length){ box.appendChild(el('p', 'muted', 'На эту дату свободных слотов нет. Выберите другой день.')); disable(['s-client']); validate(); render(); return; }
+  data.slots.forEach(t => box.appendChild(opt(t, null, false, () => {
+    st.start = t; $('v-time').textContent = dateRu(st.date) + ', ' + t; mark(box, t); enable('s-client'); validate(); render(); })));
+  validate(); render();
+}
+$('date').onchange = e => { st.date = e.target.value; loadSlots(); };
+['name','phone','consent'].forEach(id => $(id).addEventListener('input', validate));
+let codeTimer = null;
+async function checkCode(){
+  const code = $('code').value.trim(); const msg = $('codemsg'); msg.textContent = ''; st.discount = 0;
+  if (!code || !st.services.size){ render(); return; }
+  const {data} = await api(`/api/code?code=${encodeURIComponent(code)}&phone=${encodeURIComponent($('phone').value)}&services=${[...st.services].join(',')}`);
+  msg.textContent = data.message || ''; msg.style.color = data.ok ? 'var(--ok)' : 'var(--bad)';
+  st.discount = data.ok ? data.discount : 0; render();
+}
+['code','phone'].forEach(id => $(id).addEventListener('input', () => { clearTimeout(codeTimer); codeTimer = setTimeout(checkCode, 450); }));
+function validate(){
+  $('go').disabled = !(st.branch && st.master && st.services.size && st.start && $('name').value.trim()
+    && /^\+?\d[\d\s()-]{9,17}$/.test($('phone').value.trim()) && $('consent').checked);
+}
+$('go').onclick = async () => {
+  $('go').disabled = true; $('msg').textContent = '';
+  const {ok, data} = await api('/api/visits', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+    master_id:st.master.id, services:[...st.services], date:st.date, start:st.start,
+    name:$('name').value, phone:$('phone').value, consent:$('consent').checked, code:$('code').value.trim()})});
+  if (ok){
+    if (data.thanks){ location.href = (window.KV || '') + data.thanks; return; }
+  } else {
+    $('msg').textContent = data.error || 'Не получилось. Попробуйте ещё раз.';
+    if (data.error && /занято/.test(data.error)) loadSlots(); validate();
+  }
+};
+api('/api/public').then(({data}) => { if (data.title) document.title = 'Запись — ' + data.title; });
+loadBranches(); render();
+</script>
+</body>
+</html>

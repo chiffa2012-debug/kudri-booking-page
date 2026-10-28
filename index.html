@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Кудри — салон красоты. Запись онлайн</title>
+<meta name="description" content="Салон красоты «Кудри». Выберите мастера, услугу и время и запишитесь онлайн.">
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body class="pub">
+  <main class="hero">
+    <div class="hero-text">
+      <h1 class="wordmark">Кудри</h1>
+      <p class="lead" id="tagline">Салон красоты. Выберите мастера, услугу и время: запись займёт минуту.</p>
+      <nav class="actions" aria-label="Способы записи">
+        <a class="cta" href="/book">Записаться онлайн
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a class="cta alt" id="messenger" href="#" hidden>Записаться в мессенджере
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
+        </a>
+      </nav>
+      <p class="dirs">Маникюр и педикюр, брови и визаж, ресницы, стрижки и окрашивание, ваксинг, пирсинг.</p>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 400 520">
+        <path d="M0 520V200C0 90 90 0 200 0s200 90 200 200v320z" fill="#e6dcf3"/>
+        <circle cx="318" cy="104" r="46" fill="#d5e8b8"/>
+        <path class="curl" pathLength="1" d="M-20 440C50 330 160 350 150 420C140 490 60 478 82 408C104 338 232 250 272 322C312 394 232 432 212 372C192 312 292 188 342 250C392 312 322 362 302 302C282 242 332 118 420 150"/>
+        <path class="curl thin" pathLength="1" d="M-20 470C60 380 150 400 140 450C132 492 76 490 92 440C110 384 226 300 262 360C292 410 232 438 220 396C206 348 300 238 336 286C366 326 322 354 310 322C296 284 340 196 420 214"/>
+      </svg>
+    </div>
+  </main>
+<script>
+  // Название, подпись и ссылка на мессенджер задаются в админке.
+  fetch('/api/public').then(r => r.json()).then(s => {
+    if (s.tagline) document.getElementById('tagline').textContent = s.tagline + '. Выберите мастера, услугу и время: запись займёт минуту.';
+    const a = document.getElementById('messenger');
+    if (s.messenger_url && /^https:\/\//.test(s.messenger_url)) {
+      a.href = s.messenger_url; a.target = '_blank'; a.rel = 'noopener'; a.hidden = false;
+    }
+  }).catch(() => {});
+</script>
+</body>
+</html>
